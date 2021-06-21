@@ -1,72 +1,82 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package login;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import login.AccountService;
 
-/**
- *
- * @author m-navarro
- */
 public class LoginServlet extends HttpServlet {
-      @Override
+
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-         getServletContext().getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
-         //responsible for making the user LOGOUT
-         
-        String logOutClicked = request.getParameter("logout");
-         
-          if (logOutClicked != null) {
 
-            getServletContext().getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
-            
-        } else {
+        //create a server session to remember the users name
+        HttpSession session = request.getSession();
+        
+        
+        String username = (String) session.getAttribute("user_name");
+
+        String logOut = request.getParameter("logout");
+
+        if (logOut != null) {
+            // if logout has been clicked,shutdown the session
+            session.invalidate();
+            // Display a message to show user that you have succesfully logged out!
+            request.setAttribute("warning", "You have successfully logged out.");
+
             getServletContext().getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
-            request.setAttribute("errorMsg", "You have successfully log out!");
-                   
-          }
-    
+        } else if (username != null) {
+            // if username is not null, redirect them to home
+            response.sendRedirect("home");
+        } else {
+            //send the user to login page to login
+            getServletContext().getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+
+        }
+
     }
-    
-      @Override
+
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-    
+
+        // create HttpSession 
+        HttpSession session = request.getSession();
+      
+        AccountService accServices = new AccountService();
+
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        
-        
-        //////VALIDATION\\\\\\\\
-        
-        if(username == null || username.equals("")){
-            request.setAttribute("errorMsg", "Please enter your username");
-            return;
-        }
-        else if (password == null || password.equals("")){
-            request.setAttribute("errorMsg", "Please enter your password");
-            return;
-        }
-        
-        //////END OF VALIDATION\\\\\\\\
-        else {
-            getServletContext().getRequestDispatcher("/WEB-INF/home.jsp").forward(request, response);
-            return;
-        }
-        
-        //TODO:
-        ///Validation are not NULL
-        ///
-    }
 
+        // when login gets clicked 
+        String logIn = request.getParameter("login");
+
+        if (logIn != null) {
+
+            // display an error message to show user that the fields are empty
+            if (username == null || username.equals("") || password == null || password.equals("")) {
+                request.setAttribute("warning", "Please enter your username");
+                getServletContext().getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+                return;
+            } 
+            else {
+                // if values are correct, send them to home page
+                if (accServices.login(username, password) != null) {
+                    session.setAttribute("user", username);
+                    response.sendRedirect("home");
+                } else {
+                    // if the username is not adam or betty, warn the user
+                    request.setAttribute("warning", "Username and Password does not exist. Please try again.");
+                    getServletContext().getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+
+                }
+            }
+
+        }
+    }
 
 }

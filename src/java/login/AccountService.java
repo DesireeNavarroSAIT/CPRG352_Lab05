@@ -1,9 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package login;
+import users.Users;
 
 /**
  *
@@ -11,11 +8,16 @@ package login;
  */
 public class AccountService {
     
-    String adam = "adam";
-    String betty = "betty";
     
-    public User login(String username,String password){
+    public Users login (String username, String password){
+    
         
+        if(username.equals("adam") || username.equals("betty") && password.equals("password")){
+            return new Users(username,null);
+        }
+        return null;
+            
+           
     }
     
 }
